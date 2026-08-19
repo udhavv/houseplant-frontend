@@ -1,5 +1,5 @@
 // utils/constants.ts
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `http://localhost:4000/api/${process.env.VERSION}`
 
 export const AUTH_ROUTES = {
   LOGIN: '/login',
@@ -24,6 +24,8 @@ export const PUBLIC_ROUTES = [
 ] as const
 
 export const EMAIL_VERIFICATION_INTERVAL = 5 * 60 * 1000 // 5 minutes
+
+
 
 export const TOAST_DURATION = 5000 // 5 seconds
 

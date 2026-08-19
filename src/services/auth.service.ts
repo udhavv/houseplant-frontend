@@ -4,6 +4,7 @@ import { LoginCredentials, RegisterCredentials, AuthResponse, User } from '@/typ
 
 class AuthService {
   async register(data: RegisterCredentials): Promise<AuthResponse> {
+    console.log('Registering user with data:', data) // Debugging line
     const response = await api.post('/auth/register', data)
     return response.data
   }

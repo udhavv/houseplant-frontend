@@ -6,6 +6,7 @@ export interface User {
   isEmailVerified: boolean
   createdAt?: string
   updatedAt?: string
+  message?: string
 }
 
 export interface AuthResponse {
@@ -43,4 +44,5 @@ export interface AuthState {
   error: string | null
   isEmailVerificationSent: boolean
   isEmailVerified: boolean
+  successMessage: string | null
 }

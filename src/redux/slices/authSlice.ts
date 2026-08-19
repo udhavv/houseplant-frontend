@@ -10,6 +10,7 @@ const initialState: AuthState = {
   error: null,
   isEmailVerificationSent: false,
   isEmailVerified: false,
+  successMessage: null,
 }
 
 // Async thunks
@@ -32,14 +33,16 @@ export const login = createAsyncThunk(
 export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
   async () => {
-    await authService.refreshToken()
+    const response = await authService.refreshToken()
+    return response
   }
 )
 
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
-    await authService.logout()
+    const response = await authService.logout()
+    return response
   }
 )
 
@@ -90,11 +93,15 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
+    clearSuccess: (state) => {
+      state.successMessage = null
+    },
     clearAuth: (state) => {
       state.user = null
       state.isAuthenticated = false
       state.error = null
       state.isEmailVerified = false
+      state.successMessage = null
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload
@@ -112,6 +119,7 @@ const authSlice = createSlice({
         state.isLoading = true
         state.error = null
         state.isEmailVerificationSent = false
+        state.successMessage = null
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false
@@ -120,17 +128,20 @@ const authSlice = createSlice({
         state.error = null
         state.isEmailVerificationSent = true
         state.isEmailVerified = false
+        state.successMessage = action.payload.message
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.error.message || 'Registration failed'
         state.isEmailVerificationSent = false
+        state.successMessage = null
       })
 
       // Login
       .addCase(login.pending, (state) => {
         state.isLoading = true
         state.error = null
+        state.successMessage = null
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false
@@ -138,35 +149,46 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.error = null
         state.isEmailVerified = action.payload.user.isEmailVerified
+        state.successMessage = action.payload.message
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.error.message || 'Login failed'
         state.isAuthenticated = false
         state.user = null
+        state.successMessage = null
       })
 
       // Refresh token
-      .addCase(refreshToken.fulfilled, (state) => {
+      .addCase(refreshToken.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(refreshToken.fulfilled, (state, action) => {
+        state.isLoading = false
         state.isAuthenticated = true
         state.error = null
+        // state.successMessage = action.payload?.message || null
       })
       .addCase(refreshToken.rejected, (state) => {
+        state.isLoading = false
         state.isAuthenticated = false
         state.user = null
+        state.successMessage = null
       })
 
       // Logout
-      .addCase(logout.fulfilled, (state) => {
+      .addCase(logout.fulfilled, (state, action) => {
         state.user = null
         state.isAuthenticated = false
         state.error = null
         state.isEmailVerified = false
+        // state.successMessage = action.payload?.message || null
       })
       .addCase(logout.rejected, (state) => {
         state.user = null
         state.isAuthenticated = false
         state.isEmailVerified = false
+        state.successMessage = null
       })
 
       // Check auth
@@ -179,6 +201,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.error = null
         state.isEmailVerified = action.payload.user.isEmailVerified
+        // state.successMessage = action.payload.message
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false
@@ -188,46 +211,55 @@ const authSlice = createSlice({
       })
 
       // Verify email
-      .addCase(verifyEmail.fulfilled, (state) => {
+      .addCase(verifyEmail.fulfilled, (state, action) => {
         state.error = null
         state.isEmailVerified = true
         if (state.user) {
           state.user.isEmailVerified = true
         }
+        state.successMessage = action.payload.message
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.error = action.error.message || 'Email verification failed'
+        state.successMessage = null
       })
 
       // Forgot password
-      .addCase(forgotPassword.fulfilled, (state) => {
+      .addCase(forgotPassword.fulfilled, (state, action) => {
         state.error = null
+        state.successMessage = action.payload.message
       })
       .addCase(forgotPassword.rejected, (state, action) => {
         state.error = action.error.message || 'Password reset request failed'
+        state.successMessage = null
       })
 
       // Reset password
-      .addCase(resetPassword.fulfilled, (state) => {
+      .addCase(resetPassword.fulfilled, (state, action) => {
         state.error = null
+        state.successMessage = action.payload.message
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.error = action.error.message || 'Password reset failed'
+        state.successMessage = null
       })
 
       // Resend verification email
-      .addCase(resendVerificationEmail.fulfilled, (state) => {
+      .addCase(resendVerificationEmail.fulfilled, (state, action) => {
         state.isEmailVerificationSent = true
         state.error = null
+        state.successMessage = action.payload.message
       })
       .addCase(resendVerificationEmail.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to send verification email'
+        state.successMessage = null
       })
   },
 })
 
 export const { 
   clearError, 
+  clearSuccess,
   clearAuth, 
   setUser,
   resetEmailVerificationStatus 

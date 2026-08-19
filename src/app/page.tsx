@@ -1,32 +1,3 @@
-// "use client";
-// import Link from "next/link";
-// import { useRouter } from "next/navigation";
-
-// export default function Home() {
-//   const router = useRouter();
-//   return (
-//     <>
-//       <h1> This is the Landing page and the page is not made yet</h1>
-
-
-//       <button
-//         onClick={() => router.push("/login")}
-//         className="mx-5 my-3 px-3 py-2 border rounded-2xl border-blue-300 bg-blue-500 text-white font-bold hover:cursor-pointer hover:bg-blue-700 hover:transition"
-//       >
-//         Go to Login
-//       </button>
-//       <button
-//         onClick={() => router.push("/register")}
-//         className="mx-5 my-3 px-3 py-2 border rounded-2xl  bg-blue-500 text-white font-bold hover:cursor-pointer hover:bg-blue-700 hover:transition"
-//       >
-//         Go to Register
-//       </button>
-//     </>
-//   );
-// }
-
-
-
 "use client";
 
 import Link from "next/link";

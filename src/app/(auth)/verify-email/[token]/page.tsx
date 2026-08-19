@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAppDispatch } from '@/lib/hooks'
 import { verifyEmail } from '@/redux/slices/authSlice'
@@ -11,26 +11,42 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 export default function VerifyEmailPage({ params }: { params: { token: string } }) {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const { token } = useParams()
+
+  const [status, setStatus] = useState<
+    'loading' | 'success' | 'error'
+  >('loading')
+
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    if (!token) return
+
     const verify = async () => {
       try {
-        await dispatch(verifyEmail(params.token)).unwrap()
+        await dispatch(verifyEmail(token as string)).unwrap()
+
         setStatus('success')
-        setMessage('Your email has been verified successfully!')
+
+        setMessage(
+          'Your email has been verified successfully!'
+        )
+
         setTimeout(() => {
           router.push('/login')
         }, 3000)
       } catch (error: any) {
         setStatus('error')
-        setMessage(error.message || 'Invalid or expired verification token.')
+
+        setMessage(
+          error.message ||
+            'Invalid or expired verification token.'
+        )
       }
     }
 
     verify()
-  }, [params.token, dispatch, router])
+  }, [token, dispatch, router])
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
