@@ -2,20 +2,25 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { Plant } from '@/redux/slices/plantSlice'
+
+interface PlantGrowthTimelineProps {
+  plant: Plant | null
+}
 
 const milestones = [
   { day: 0, label: 'Seed Planted', icon: '🌰', description: 'Your journey begins' },
-  { day: 3, label: 'First Sprout', icon: '🌱', description: 'Life emerges from the soil' },
-  { day: 7, label: 'First Leaves', icon: '🌿', description: 'Photosynthesis begins' },
-  { day: 14, label: 'Strong Stem', icon: '🌳', description: 'Growing taller every day' },
-  { day: 21, label: 'Branching Out', icon: '🌴', description: 'New branches forming' },
-  { day: 30, label: 'Mature Plant', icon: '🌲', description: 'Full growth achieved' },
-  { day: 45, label: 'Flowering', icon: '🌸', description: 'Beautiful blooms appear' },
-  { day: 60, label: 'Fruiting', icon: '🍎', description: 'Harvest time!' },
+  { day: 20, label: 'First Sprout', icon: '🌱', description: 'Life emerges from the soil' },
+  { day: 40, label: 'First Leaves', icon: '🌿', description: 'Photosynthesis begins' },
+  { day: 60, label: 'Strong Stem', icon: '🌳', description: 'Growing taller every day' },
+  { day: 80, label: 'Mature Plant', icon: '🌲', description: 'Full growth achieved' },
 ]
 
-export function PlantGrowthTimeline() {
-  const currentDay = 12 // This would come from your plant data
+export function PlantGrowthTimeline({ plant }: PlantGrowthTimelineProps) {
+  if (!plant) return null
+
+  const daysOld = Math.floor((Date.now() - new Date(plant.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+  const currentDay = Math.min(daysOld, 80)
 
   return (
     <motion.div
@@ -25,6 +30,7 @@ export function PlantGrowthTimeline() {
       className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 p-8"
     >
       <h3 className="text-xl font-bold text-gray-900 mb-6">📈 Growth Timeline</h3>
+      <p className="text-gray-600 text-sm mb-6">Day {currentDay} of growth</p>
 
       <div className="relative">
         {/* Timeline Line */}
@@ -51,7 +57,7 @@ export function PlantGrowthTimeline() {
                 <div className={`absolute left-4 md:left-1/2 w-4 h-4 rounded-full transform -translate-x-1/2 z-10 ${
                   isReached ? 'bg-green-500' : 'bg-gray-300'
                 }`}>
-                  {isCurrent && (
+                  {isCurrent && plant.isAlive && (
                     <motion.div
                       animate={{ scale: [1, 1.5, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
@@ -68,7 +74,9 @@ export function PlantGrowthTimeline() {
                     whileHover={{ scale: 1.02 }}
                     className={`p-4 rounded-xl transition-all duration-300 ${
                       isReached
-                        ? 'bg-green-50 border border-green-200'
+                        ? plant.isAlive 
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-red-50 border border-red-200'
                         : 'bg-gray-50 border border-gray-200 opacity-50'
                     }`}
                   >

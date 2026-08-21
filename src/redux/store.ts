@@ -1,10 +1,13 @@
 import {configureStore, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import authSlice from './slices/authSlice';
-
+import plantSlice from './slices/plantSlice';
+import shopSlice from './slices/shopSlice';
 
 export const store= configureStore({
   reducer: {
     auth: authSlice,
+    plant: plantSlice,
+    shop: shopSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

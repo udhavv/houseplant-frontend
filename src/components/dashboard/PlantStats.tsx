@@ -2,50 +2,43 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { Plant } from '@/redux/slices/plantSlice'
 
 interface PlantStatsProps {
-  plantData: {
-    health: number
-    waterLevel: number
-    growthStage: string
-    daysOld: number
-    experience: number
-    level: number
-    nextLevelXP: number
-  }
+  plant: Plant | null
+  coins: number
 }
 
 const stats = [
-  { 
-    key: 'level', 
-    label: 'Level', 
-    icon: '⭐', 
-    color: 'from-yellow-400 to-yellow-600',
-    bgColor: 'bg-yellow-50'
-  },
-  { 
-    key: 'experience', 
-    label: 'Experience', 
-    icon: '✨', 
-    color: 'from-purple-400 to-purple-600',
-    bgColor: 'bg-purple-50'
-  },
-  { 
-    key: 'daysOld', 
-    label: 'Days Growing', 
-    icon: '📅', 
-    color: 'from-blue-400 to-blue-600',
-    bgColor: 'bg-blue-50'
-  },
+  { key: 'health', label: 'Health', icon: '💚', color: 'from-green-400 to-green-600', bgColor: 'bg-green-50' },
+  { key: 'waterLevel', label: 'Water', icon: '💧', color: 'from-blue-400 to-blue-600', bgColor: 'bg-blue-50' },
+  { key: 'coins', label: 'Coins', icon: '🪙', color: 'from-yellow-400 to-yellow-600', bgColor: 'bg-yellow-50' },
+  { key: 'potType', label: 'Pot Type', icon: '🏺', color: 'from-purple-400 to-purple-600', bgColor: 'bg-purple-50' },
 ]
 
-export function PlantStats({ plantData }: PlantStatsProps) {
+export function PlantStats({ plant, coins }: PlantStatsProps) {
+  const getPotDisplay = (potType: string) => {
+    const potNames = { basic: 'Basic', ceramic: 'Ceramic', golden: 'Golden' }
+    return potNames[potType as keyof typeof potNames] || potType
+  }
+
+  const getValue = (key: string) => {
+    if (key === 'coins') return coins
+    if (key === 'potType') return plant ? getPotDisplay(plant.potType) : 'Basic'
+    return plant ? plant[key as keyof Plant] : 0
+  }
+
+  const getSuffix = (key: string) => {
+    if (key === 'health' || key === 'waterLevel') return '%'
+    return ''
+  }
+
   return (
     <>
       {stats.map((stat, index) => {
-        const value: any = plantData[stat.key as keyof typeof plantData]
-        const isExperience = stat.key === 'experience'
-        const isLevel = stat.key === 'level'
+        const value = getValue(stat.key)
+        const suffix = getSuffix(stat.key)
+        const isPercentage = stat.key === 'health' || stat.key === 'waterLevel'
         
         return (
           <motion.div
@@ -60,30 +53,25 @@ export function PlantStats({ plantData }: PlantStatsProps) {
               <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${stat.color} flex items-center justify-center text-2xl`}>
                 {stat.icon}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm text-gray-600">{stat.label}</p>
-                {isLevel ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">{value}</span>
-                    <span className="text-sm text-gray-500">/ 10</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-gray-900">
+                    {typeof value === 'number' ? value : value}
+                    {suffix}
+                  </span>
+                </div>
+                {isPercentage && typeof value === 'number' && (
+                  <div className="w-full h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${value}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className={`h-full rounded-full ${
+                        value > 70 ? 'bg-green-500' : value > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                    />
                   </div>
-                ) : isExperience ? (
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold text-gray-900">{value}</span>
-                      <span className="text-sm text-gray-500">/ {plantData.nextLevelXP}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(value / plantData.nextLevelXP) * 100}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <span className="text-2xl font-bold text-gray-900">{value}</span>
                 )}
               </div>
             </div>

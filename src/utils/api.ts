@@ -431,7 +431,7 @@ class ApiService {
   }
 
   public post(...args: Parameters<AxiosInstance['post']>) {
-    console.log("post request initiated with the args:- ", args)
+    // console.log("post request initiated with the args:- ", args)
     return this.api.post(...args)
   }
 

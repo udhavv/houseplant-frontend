@@ -73,38 +73,54 @@
 
 
 
-
 // app/(protected)/dashboard/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { AuthGuard } from '@/components/auth/authGuard'
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { useAuth } from '@/lib/hooks'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PlantLifeCycle } from '@/components/dashboard/PlantLifeCycle'
 import { PlantStats } from '@/components/dashboard/PlantStats'
 import { PlantActions } from '@/components/dashboard/PlantActions'
 import { PlantGrowthTimeline } from '@/components/dashboard/PlantGrowthTimeline'
+import { ShopPanel } from '@/components/dashboard/ShopPanel'
+import { fetchPlant, waterPlant, resetPlant } from '@/redux/slices/plantSlice'
+import { getBalance, dailyCheckin, } from '@/redux/slices/shopSlice'
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth()
-  const [selectedStage, setSelectedStage] = useState('seed')
-  const [plantData, setPlantData] = useState({
-    health: 85,
-    waterLevel: 70,
-    growthStage: 'sprout',
-    daysOld: 12,
-    lastWatered: new Date(),
-    experience: 450,
-    level: 3,
-    nextLevelXP: 600,
-  })
+  const dispatch = useAppDispatch()
+  const { user, isLoading: authLoading } = useAppSelector((state) => state.auth)
+  const { plant, isLoading: plantLoading } = useAppSelector((state) => state.plant)
+  const { coins, isLoading: shopLoading } = useAppSelector((state) => state.shop)
+  
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  if (isLoading) {
+  useEffect(() => {
+    const initializeDashboard = async () => {
+      try {
+        await Promise.all([
+          dispatch(fetchPlant()).unwrap(),
+          dispatch(getBalance()).unwrap(),
+          // dispatch(getTransactions()).unwrap(),
+        ])
+      } catch (error) {
+        console.error('Failed to initialize dashboard:', error)
+      } finally {
+        setIsInitialized(true)
+      }
+    }
+
+    if (!authLoading) {
+      initializeDashboard()
+    }
+  }, [dispatch, authLoading])
+
+  if (authLoading || !isInitialized || plantLoading || shopLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
         <LoadingSpinner size="lg" />
@@ -133,16 +149,21 @@ export default function DashboardPage() {
           </motion.div>
 
           {/* Plant Life Cycle Visualization */}
-          <PlantLifeCycle 
-            currentStage={plantData.growthStage}
-            health={plantData.health}
-            waterLevel={plantData.waterLevel}
-            daysOld={plantData.daysOld}
-          />
+          {plant && (
+            <PlantLifeCycle 
+              plant={plant}
+              coins={coins}
+            />
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <PlantStats plantData={plantData} />
+            <PlantStats plant={plant} coins={coins} />
+          </div>
+
+          {/* Shop Panel */}
+          <div className="mt-8">
+            <ShopPanel />
           </div>
 
           {/* Plant Actions */}
@@ -152,7 +173,7 @@ export default function DashboardPage() {
 
           {/* Growth Timeline */}
           <div className="mt-8">
-            <PlantGrowthTimeline />
+            <PlantGrowthTimeline plant={plant} />
           </div>
         </main>
         

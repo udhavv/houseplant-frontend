@@ -26,6 +26,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (data: { email: string; password: string }) => {
     const response = await authService.login(data)
+    console.log('login response:', response) // Log the response for debugging
     return response
   }
 )
