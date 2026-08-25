@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
-import { buyPot, POT_PRICES, PotType } from '@/redux/slices/shopSlice'
+import { buyPot, getBalance, POT_PRICES, PotType } from '@/redux/slices/shopSlice'
 import { showLoadingToast } from '@/utils/toast'
 import toast from 'react-hot-toast'
 import {showWarningToast, showErrorToast} from "@/utils/toast";
@@ -39,6 +39,7 @@ export function ShopPanel() {
 
     try {
       await dispatch(buyPot(potType)).unwrap()
+      await dispatch(getBalance())
       toast.dismiss(loadingToast)
     } catch (error) {
       toast.dismiss(loadingToast)

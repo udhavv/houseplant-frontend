@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 export interface Transaction {
   id: string
   amount: number
-  type: 'daily_checkin' | 'purchase_pot' | 'water_bonus'
+  type: 'daily_checkin' | 'purchase_pot' | 'water_bonus' | 'stage_bonus' | 'level_up_bonus'
   createdAt: string
   userId: string
 }
@@ -47,19 +47,46 @@ export const getBalance = createAsyncThunk(
   }
 )
 
+// ====== FIX: Proper error handling with rejectWithValue ======
 export const dailyCheckin = createAsyncThunk(
   'shop/dailyCheckin',
-  async () => {
-    const response = await api.post('/shop/checkin')
-    return response.data
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/shop/checkin')
+      console.log('Daily checkin response:', response.data)
+      return response.data
+    } catch (error: any) {
+      console.log('Daily checkin error:', error)
+      console.log('Error response:', error?.response)
+      console.log('Error response data:', error?.response?.data)
+      
+      // Return the error with rejectWithValue to preserve the response data
+      if (error?.response?.data) {
+        return rejectWithValue(error.response.data)
+      }
+      return rejectWithValue({
+        message: error?.message || 'Failed to check in',
+        error: error?.message || 'Unknown error'
+      })
+    }
   }
 )
 
 export const buyPot = createAsyncThunk(
   'shop/buyPot',
-  async (potType: PotType) => {
-    const response = await api.post('/shop/buy-pot', { potType })
-    return response.data
+  async (potType: PotType, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/shop/buy-pot', { potType })
+      return response.data
+    } catch (error: any) {
+      if (error?.response?.data) {
+        return rejectWithValue(error.response.data)
+      }
+      return rejectWithValue({
+        message: error?.message || 'Failed to purchase pot',
+        error: error?.message || 'Unknown error'
+      })
+    }
   }
 )
 
@@ -97,7 +124,7 @@ const shopSlice = createSlice({
       })
       .addCase(getBalance.fulfilled, (state, action) => {
         state.isLoading = false
-        state.coins = action.payload.coins
+        state.coins = action.payload.coins || 0
         state.error = null
       })
       .addCase(getBalance.rejected, (state, action) => {
@@ -105,22 +132,56 @@ const shopSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch balance'
       })
 
-      // Daily Checkin
+      // ====== FIX: Daily Checkin with proper error handling ======
       .addCase(dailyCheckin.pending, (state) => {
         state.isLoading = true
         state.error = null
+        state.successMessage = null
       })
       .addCase(dailyCheckin.fulfilled, (state, action) => {
         state.isLoading = false
-        state.coins += action.payload.coins
+        state.coins += action.payload.coins || 0
         state.successMessage = action.payload.message
         state.lastCheckinDate = new Date().toISOString()
-        showSuccessToast(`✅ ${action.payload.message} (+${action.payload.coins} coins)`)
+        state.error = null
+        
+        // Show success toast with the message from response
+        if (action.payload.message) {
+          showSuccessToast(action.payload.message)
+        } else {
+          showSuccessToast(`✅ Daily check-in complete! +${action.payload.coins || 0} coins`)
+        }
       })
       .addCase(dailyCheckin.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to check in'
-        showErrorToast(state.error || 'Failed to check in')
+        
+        // ====== FIX: Extract error message from payload ======
+        const payload = action.payload as any
+        let errorMessage = 'Failed to check in'
+        
+        if (payload) {
+          // Priority: message > error > string
+          if (payload.message) {
+            errorMessage = payload.message
+          } else if (payload.error) {
+            errorMessage = payload.error
+          } else if (typeof payload === 'string') {
+            errorMessage = payload
+          }
+        } else if (action.error?.message) {
+          errorMessage = action.error.message
+        }
+        
+        state.error = errorMessage
+        
+        // Show error toast with the extracted message
+        showErrorToast(errorMessage)
+        
+        console.log('Daily checkin error state:', {
+          error: action.error,
+          payload: payload,
+          message: errorMessage
+        })
       })
 
       // Buy Pot
@@ -131,12 +192,27 @@ const shopSlice = createSlice({
       .addCase(buyPot.fulfilled, (state, action) => {
         state.isLoading = false
         state.successMessage = action.payload.message
+        state.coins = action.payload.coins || state.coins
         showSuccessToast(`✨ ${action.payload.message}`)
       })
       .addCase(buyPot.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.error.message || 'Failed to purchase pot'
-        showErrorToast(state.error || 'Failed to purchase pot')
+        
+        const payload = action.payload as any
+        let errorMessage = 'Failed to purchase pot'
+        
+        if (payload) {
+          if (payload.message) {
+            errorMessage = payload.message
+          } else if (payload.error) {
+            errorMessage = payload.error
+          }
+        } else if (action.error?.message) {
+          errorMessage = action.error.message
+        }
+        
+        state.error = errorMessage
+        showErrorToast(errorMessage)
       })
 
       // Get Transactions

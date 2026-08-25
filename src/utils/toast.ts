@@ -53,3 +53,8 @@ export const showLoadingToast = (message: string) => {
     },
   })
 }
+
+
+export const dismissToast = (toastId: string) => {
+  toast.dismiss(toastId)
+}
