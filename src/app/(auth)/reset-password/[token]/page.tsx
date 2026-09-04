@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { resetPassword, clearError } from "@/redux/slices/authSlice";
 
-export default function ResetPasswordPage({ params }: { params: { token: string } }) {
-  const router = useRouter();
+export default function ResetPasswordPage() {
+  const params=useParams<{token: string}>();
   const dispatch = useAppDispatch();
   const { isLoading, error } = useAppSelector((state) => state.auth);
   

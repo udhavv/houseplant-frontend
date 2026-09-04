@@ -8,10 +8,10 @@ import { useAppDispatch } from '@/lib/hooks'
 import { verifyEmail } from '@/redux/slices/authSlice'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
-export default function VerifyEmailPage({ params }: { params: { token: string } }) {
+export default function VerifyEmailPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { token } = useParams()
+  const { token } = useParams<{token : string}>()
 
   const [status, setStatus] = useState<
     'loading' | 'success' | 'error'
