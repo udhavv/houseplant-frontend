@@ -6,9 +6,9 @@ interface Config {
 }
 
 export const config: Config = {
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:4000',
+  API_URL: process.env.API_URL || 'http://localhost:4000',
   NODE_ENV: process.env.NODE_ENV || 'development',
-  VERSION: process.env.BACKEND_APP_VERSION || 'V1'
+  VERSION: process.env.VERSION || 'V1'
 }
 
 export const API_URL = config.API_URL
