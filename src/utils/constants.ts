@@ -1,5 +1,5 @@
 // utils/constants.ts
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `http://localhost:4000/api/${process.env.VERSION}`
+export const API_BASE_URL = process.env.API_URL || `http://localhost:4000/api/${process.env.VERSION}`
 
 export const AUTH_ROUTES = {
   LOGIN: '/login',
