@@ -49,6 +49,8 @@ export function PlantActions() {
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isMountedRef = useRef(true)
 
+
+
   // Cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true
@@ -200,6 +202,8 @@ export function PlantActions() {
       }
     }
   }, [dispatch, isProcessing, shopLoading, isCooldown])
+
+
 
   // ====== OPTIMIZED: Memoized cooldown display ======
   const getCooldownText = useCallback(() => {

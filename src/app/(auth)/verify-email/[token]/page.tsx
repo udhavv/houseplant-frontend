@@ -7,15 +7,20 @@ import Link from 'next/link'
 import { useAppDispatch } from '@/lib/hooks'
 import { verifyEmail } from '@/redux/slices/authSlice'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { showErrorToast, showLoadingToast, showSuccessToast } from '@/utils/toast'
+
 
 export default function VerifyEmailPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { token } = useParams<{token : string}>()
+  console.log('this is the token:- ', token)
 
   const [status, setStatus] = useState<
     'loading' | 'success' | 'error'
   >('loading')
+
+  console.log('status:- ', status)
 
   const [message, setMessage] = useState('')
 
@@ -24,7 +29,8 @@ export default function VerifyEmailPage() {
 
     const verify = async () => {
       try {
-        await dispatch(verifyEmail(token as string)).unwrap()
+        const response= await dispatch(verifyEmail(token as string)).unwrap()
+        console.log('this is the verrify email response', response)
 
         setStatus('success')
 
@@ -32,16 +38,21 @@ export default function VerifyEmailPage() {
           'Your email has been verified successfully!'
         )
 
+        showSuccessToast("your email has been verified successfully!")
+
         setTimeout(() => {
           router.push('/login')
         }, 3000)
       } catch (error: any) {
         setStatus('error')
+        
 
         setMessage(
           error.message ||
             'Invalid or expired verification token.'
         )
+
+        showErrorToast('Invalid or expired verification token.')
       }
     }
 
